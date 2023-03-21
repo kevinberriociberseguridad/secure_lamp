@@ -1,0 +1,6 @@
+NOMBRE:APELLIDOS:CORREO:TELEFONO
+Kevin:BerrioBautista:kevinberriociberseguridad@gmail.com:661666850
+Ana:LinaresBarroso:analinaresbarroso@gmail.com:673194667
+Diego:GaySaez:diegogaysaez@gmail.com:666666666
+Fran:CosezGonzalez:francosez@gmail.com:647263789
+Francisco:RodriguezDurak:franciscorodriguez@gmail.com:658399233

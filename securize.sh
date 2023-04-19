@@ -12,35 +12,111 @@ function comprobarFichero() {
 	fi
 }
 
-function comprobarPermisos() {
-	echo "AVISO: La siguiente modificación la debe de hacer un susuario con permisos. Si no los posee, pase a la siguiente comprobación."
-	read -p "¿Es usted un usuario con permisos para realizar esta modificación? [ si / no ] " permisos
-	while [[ $permisos != si ]] && [[ $permisos != no ]];
+function avisoMYSQL() {
+	permisos=""
+	echo -e "\nAVISO: La siguiente modificación la debe de hacer un usuario con permisos. Si no los posee, pase a la siguiente comprobación."
+	read -p "¿Es usted un usuario con permisos para realizar esta modificación? [ s / n ] " permisos
+	while [[ $permisos != s ]] && [[ $permisos != n ]];
 	do
-		read -p "Introduzca una opción correcta. [ si / no ] " permisos
+		read -p "Introduzca una opción correcta. [ s / n ] " permisos
 	done
-	if [ $permisos == si ]
+	if [ $permisos == s ]
 	then
 		read -p "Introduzca el usuario de mysql: " usuario
 		read -p "Introduzca la contraseña de mysql: " contrasena
-		read -p "Introduzca la contraseña de mysql: " nombreBD
+		read -p "Introduzca el nombre de la base de datos: " nombreBD
 		read -p "Introduzca el nuevo nombre para el usuario: " nusuario
-		
-		mysql -u $nombre -p $contrasena <<EOF
-			use $nombreBD;
-			$1
-			exit;
-		EOF
+		#Esta función contiene las comprobaciones MYSQL
+		comprobacionesMYSQL
 	else
 		echo "Okey, se pasará a la siguiente comprobación."
 	fi
 }
 
+function preguntaConsulta() {
+	preguntaComprobacion=""
+	echo -e "\nAVISO: La siguiente modificación la debe de hacer un usuario con permisos. Si no los posee, pase a la siguiente comprobación."
+	read -p "¿Quiere realizar la siguiente comprobación [ $1 ]? [ s / n ] " preguntaComprobacion
+	while [[ $preguntaComprobacion != s ]] && [[ $preguntaComprobacion != n ]];
+	do
+		read -p "Introduzca una opción correcta. [ s / n ] " preguntaComprobacion
+	done
+}
+
+function comprobacionesMYSQL() {
+	# 3. Renombrar el usuario root
+
+	echo 
+	echo "##### RENOMBRAR EL USUARIO ROOT #####"
+	echo
+
+	titulo="RENOMBRAR_EL_USUARIO_ROOT"
+	#Esta función realiza la consulta en MYSQL
+	preguntaConsulta $titulo
+	if [ $? -eq 0 ]
+	then		
+		mysql -u$usuario -p$contrasena << EOF
+			use $nombreBD;
+			update mysql.user set user='$nusuario' where user='root'; 
+			flush privileges;
+			exit
+EOF
+	else
+		echo "Okey, se pasará a la siguiente comprobación."
+	fi
+
+	# 4. Evitar usuario anónimos
+
+	echo 
+	echo "##### EVITAR USUARIOS ANÓNIMOS #####"
+	echo
+
+	titulo="EVITAR_USUARIOS_ANÓNIMOS"
+	preguntaConsulta $titulo
+	if [ $? -eq 0 ]
+	then
+		echo
+		echo "Número de usuarios anónimos: " 
+		mysql -u$usuario -p$contrasena << EOF
+			use $nombreBD;
+			select count(user) as "Número de usuarios anónimos" FROM mysql.user WHERE user="" OR user ="test";
+			#select user, host FROM mysql.user WHERE user="" OR user ="test";
+			exit		
+EOF
+	else
+		echo "Okey, se pasará a la siguiente comprobación."
+	fi
+
+	# 5. Controlar los privilegios de los usuarios
+
+	echo 
+	echo "##### CONTROLAR LOS PRIVILEGIOS DE LOS USUARIOS #####"
+	echo
+
+	titulo="CONTROLAR_LOS_PRIVILEGIOS_DE_LOS_USUARIOS"
+	preguntaConsulta $titulo
+	if [ $? -eq 0 ]
+	then		
+		mysql -u$usuario -p$contrasena << EOF
+			use $nombreBD;
+			select distinct(grantee) from information_schema.user_privileges;
+			exit
+EOF
+	else
+		echo "Okey, se pasará a la siguiente comprobación."
+	fi
+	#echo -p "Con los resultados de esa consulta, se pueden hacer consultas específicas sobre cada usuario. ¿Deasea realizarlas? [ si / no ] " permisos
+}
 
 # 1. Evitar conexiones remotas
 
+echo 
+echo "##### EVITAR CONEXIONES REMOTAS #####"
+echo
+
 ficheroReal="/etc/mysql/mysql.conf.d/mysqld.cnf"
 ficheroPrueba="sandbox/mysqld.cnf"
+permisos=""
 
 ficheroReal=$ficheroPrueba
 
@@ -54,6 +130,10 @@ else
 fi
 
 # 2. Evitar acceso al sistema desde MySQL
+
+echo 
+echo "##### EVITAR ACCESO AL SISTEMA DESDE MYSQL #####"
+echo
 
 ficheroReal2="/etc/mysql/my.cnf"
 ficheroPrueba2="sandbox/my.cnf"
@@ -83,18 +163,11 @@ else
 	echo "Se ha realizado correctamente la modificación."
 fi
 
-# 3. Renombrar el usuario root
+##### PARTE MYSQL ##### 
+#Con esta función compruebo, si el ususario tiene permisos para realizar las comprobaciones en MYSQL
 
-consulta=$(update mysql.user set user="$nusuario" where user="root"; flush privileges;)
-comprobarPermisos $consulta
+avisoMYSQL
 
-# 4. Evitar usuario anónimos
-
-consulta=$(SELECT user, host FROM mysql.user WHERE user="" OR user ="test";)
-comprobarPermisos $consulta
-
-# 5. Controlar los privilegios de los usuarios
-
-
+# 6. 
 
 exit 0

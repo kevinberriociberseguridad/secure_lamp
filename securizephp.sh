@@ -143,7 +143,7 @@ then
 					if [[ "$insertarFuncion" = "s" ]]
 					then
 						comando=$(grep "^disable_functions.*=.*" $ficheroReal)
-						lineaNueva="$comando, $funcion"
+						lineaNueva="$comando $funcion,"
 						sed -i "s#^disable_functions.*=.*#${lineaNueva}#" $ficheroReal >> /dev/null					
 					else 
 						echo "Ok, se omitirá la función: $funcion y se pasará a la siguiente función."
@@ -184,6 +184,135 @@ else
 		echo "Estado del parámetro tras la modificación: ";grep "^disable_functions.*=.*" $ficheroReal
 	else
 		echo "Ok, el parámetro 'disable_functions' permanecerá deshabilitada."
+	fi
+fi
+
+# 5. Comprobación de la configuración del "Remote File Inclusion"
+echo
+echo "################################################################"
+echo
+echo "Comprobación de la configuración del 'Remote File Inclusion'." 
+echo
+echo "################################################################"
+echo
+
+echo "Comprobación del parámetro 'allow_url_fopen': "
+echo
+#Comprobamos si esta habilitado "allow_url_fopen"
+grep ";allow_url_fopen.*=.*" $ficheroReal >> /dev/null
+
+#Si está habilitado, comprobamos que esté en Off.
+if [[ $? -ne 0 ]]
+then
+	echo "El parámetro 'allow_url_fopen' está habilitado."
+	comando=$(grep "^allow_url_fopen.*=.*" $ficheroReal)
+	echo "Estado actual del paŕametro --> $comando"
+	grep "^allow_url_fopen.*=.*Off" $ficheroReal >> /dev/null
+	#Si está en On
+	if [[ $? -ne 0 ]]
+	then 
+		echo "El parámetro 'allow_url_fopen' está 'On'."
+		read -p "¿Quiere desactivar este parámetro? [ s / n ] " opcion
+		while [[ $opcion != s ]] && [[ $opcion != n ]];
+		do
+			read -p "Introduzca una opción correcta. [ s / n ] " opcion
+		done
+		if [[ "$opcion" = "s" ]]
+		then
+			sed -i 's/^allow_url_fopen.*=.*On/allow_url_fopen = Off/' $ficheroReal >> /dev/null
+			comando=$(grep "^allow_url_fopen.*=.*" $ficheroReal)
+			echo "Estado actual del paŕametro --> $comando"
+		else
+			echo "El parámetro permanecerá en su estado actual."
+			comando=$(grep "^allow_url_fopen.*=.*" $ficheroReal)
+			echo "Estado actual del paŕametro --> $comando"
+		fi
+	else
+		echo "El parámetro 'allow_url_fopen' está 'Off'."
+		echo "El parámetro permanecerá en su estado actual."
+		comando=$(grep "^allow_url_fopen.*=.*" $ficheroReal)
+		echo "Estado actual del paŕametro --> $comando"
+	fi
+	
+else
+	read -p "El parámetro esta deshabilitado, ¿Desea habilitarlo? [ s / n ]" habilitar
+	while [[ $habilitar != s ]] && [[ $habilitar != n ]];
+	do
+		read -p "Introduzca una opción correcta. [ s / n ] " habilitar
+	done
+	if [[ "$habilitar" = "s" ]]
+	then
+		comando=$(grep "^;allow_url_fopen.*=.*" $ficheroReal)
+		lineaNueva="${comando:1}"
+		sed -i "s#^;allow_url_fopen.*=.*#${lineaNueva}#" $ficheroReal >> /dev/null
+		echo "El parámetro se ha modificado."
+		comando=$(grep "^allow_url_fopen.*=.*" $ficheroReal)
+		echo "Estado del parámetro tras la modificación: --> $comando"
+	else
+		echo "El parámetro permanecerá deshabilitado."
+		comando=$(grep "^;allow_url_fopen.*=.*" $ficheroReal)
+		echo "Estado actual del parámetro: --> $comando"
+	fi
+fi
+
+################ 2ª Parte Apartado 5 ####################
+echo
+echo "Comprobación del parámetro 'allow_url_include': "
+echo
+#Comprobamos si esta habilitado "allow_url_fopen"
+grep ";allow_url_include.*=.*" $ficheroReal >> /dev/null
+
+#Si está habilitado, comprobamos que esté en Off.
+if [[ $? -ne 0 ]]
+then
+	echo "El parámetro 'allow_url_include' está habilitado."
+	comando=$(grep "^allow_url_include.*=.*" $ficheroReal)
+	echo "Estado actual del paŕametro --> $comando"
+	grep "^allow_url_include.*=.*Off" $ficheroReal >> /dev/null
+	#Si está en On
+	if [[ $? -ne 0 ]]
+	then 
+		echo "El parámetro 'allow_url_include' está 'On'."
+		read -p "¿Quiere desactivar este parámetro? [ s / n ] " opcion
+		while [[ $opcion != s ]] && [[ $opcion != n ]];
+		do
+			read -p "Introduzca una opción correcta. [ s / n ] " opcion
+		done
+		if [[ "$opcion" = "s" ]]
+		then
+			sed -i 's/^allow_url_include.*=.*On/allow_url_include = Off/' $ficheroReal >> /dev/null
+			comando=$(grep "^allow_url_include.*=.*" $ficheroReal)
+			echo "Estado actual del paŕametro --> $comando"
+		else
+			echo "El parámetro permanecerá en su estado actual."
+			comando=$(grep "^allow_url_include.*=.*" $ficheroReal)
+			echo "Estado actual del paŕametro --> $comando"
+		fi
+	else
+		echo "El parámetro 'allow_url_include' está 'Off'."
+		echo "El parámetro permanecerá en su estado actual."
+		comando=$(grep "^allow_url_include.*=.*" $ficheroReal)
+		echo "Estado actual del paŕametro --> $comando"
+	fi
+	
+else
+	read -p "El parámetro esta deshabilitado, ¿Desea habilitarlo? [ s / n ]" habilitar
+	while [[ $habilitar != s ]] && [[ $habilitar != n ]];
+	do
+		read -p "Introduzca una opción correcta. [ s / n ] " habilitar
+	done
+	if [[ "$habilitar" = "s" ]]
+	then
+		comando=$(grep "^;allow_url_include.*=.*" $ficheroReal)
+		lineaNueva="${comando:1}"
+		sed -i "s#^;allow_url_include.*=.*#${lineaNueva}#" $ficheroReal >> /dev/null
+		echo "El parámetro se ha modificado."
+		comando=$(grep "^allow_url_include.*=.*" $ficheroReal)
+		echo "Estado del parámetro tras la modificación: --> $comando"
+	else
+		echo "El parámetro permanecerá deshabilitado."
+		comando=$(grep "^;allow_url_include.*=.*" $ficheroReal)
+		echo "Estado actual del parámetro: --> $comando"
 	fi
 fi
 

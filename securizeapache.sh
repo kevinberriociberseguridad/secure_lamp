@@ -24,10 +24,18 @@ echo
 grep "^User.*\${.*}" $ficheroReal >> /dev/null
 if [[ $? -ne 0 ]]
 then
-	echo "No se le ha asignado ningún parámetro a la variable de entorno."
-	echo
-	echo "se le asignará por defecto el usuario: www-data"
-	sed -i 's/^User.*/User www-data/' $ficheroReal
+	cadenaNegacion=$(grep "^User.*" $ficheroReal)
+	cadenaNegacion2=$(echo ${cadenaNegacion#*User })
+	if [[ $cadenaNegacion2 != "www-data" ]]
+	then
+		echo "No se le ha asignado ningún parámetro a la variable de entorno."
+		echo
+		echo "El nombre del usuario es: $cadenaNegacion2"
+		echo
+		echo "ADVERTENCIA: El nombre de usuario utilizado no es un nombre recomendado."
+  		echo "Se recomienda su sustitución."
+  		echo
+	fi
 else
 	echo "La variable de entorno tiene una configuración dinámica."
 	echo
@@ -57,10 +65,18 @@ echo
 grep "^Group.*\${.*}" $ficheroReal >> /dev/null
 if [[ $? -ne 0 ]]
 then
-	echo "No se le ha asignado ningún parámetro a la variable de entorno."
-	echo
-	echo "se le asignará por defecto el grupo: www-data"
-	sed -i 's/^Group.*/Group www-data/' $ficheroReal
+	cadenaNegacion=$(grep "^Group.*" $ficheroReal)
+	cadenaNegacion2=$(echo ${cadenaNegacion#*Group })
+	if [[ $cadenaNegacion2 != "www-data" ]]
+	then
+		echo "No se le ha asignado ningún parámetro a la variable de entorno."
+		echo
+		echo "El nombre del grupo es: $cadenaNegacion2"
+		echo
+		echo "ADVERTENCIA: El nombre de grupo utilizado no es un nombre recomendado."
+  		echo "Se recomienda su sustitución."
+  		echo
+	fi
 else
 	echo "La variable de entorno tiene una configuración dinámica."
 	echo
@@ -82,3 +98,4 @@ else
 	echo
 fi
 
+exit 0
